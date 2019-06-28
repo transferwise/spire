@@ -354,13 +354,18 @@ func (p *K8SPlugin) getContainerIDFromCGroups(pid int32) (string, error) {
 }
 
 func (p *K8SPlugin) reloadKubeletClient(config *k8sConfig) (err error) {
+	host := config.NodeName
+	if host == "" {
+		host = "127.0.0.1"
+	}
+
 	// The insecure client only needs to be loaded once.
 	if !config.Secure {
 		if config.Client == nil {
 			config.Client = &kubeletClient{
 				URL: url.URL{
 					Scheme: "http",
-					Host:   fmt.Sprintf("127.0.0.1:%d", config.Port),
+			                Host:   fmt.Sprintf("%s:%d", host, config.Port),
 				},
 			}
 		}
@@ -435,11 +440,6 @@ func (p *K8SPlugin) reloadKubeletClient(config *k8sConfig) (err error) {
 		if err != nil {
 			return err
 		}
-	}
-
-	host := config.NodeName
-	if host == "" {
-		host = "127.0.0.1"
 	}
 
 	config.Client = &kubeletClient{
